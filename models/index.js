@@ -1,8 +1,8 @@
 const Blog = require('./blog')
-
-Blog.sync()
+const User = require('./user')
 
 module.exports = {
-  Blog
+  Blog,
+  User
 }
 
