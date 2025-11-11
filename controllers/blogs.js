@@ -1,5 +1,5 @@
 const router = require('express').Router()
-
+const authMiddleware = require('../middleware/auth')
 const { Blog, User } = require('../models')
 
 router.get('/', async (req, res) => {
@@ -13,8 +13,11 @@ router.get('/', async (req, res) => {
   res.json(blogs)
 })
 
-router.post('/', async (req, res) => {
-  const blog = await Blog.create(req.body)
+router.post('/', authMiddleware, async (req, res) => {
+  const blog = await Blog.create({
+    ...req.body,
+    userId: req.user.id 
+  })
   res.json(blog)
 })
 
@@ -45,7 +48,6 @@ router.put('/:id',async(req,res)=>{
         res.status(404).end()
     }   
 })
-
 
 module.exports = router
 
