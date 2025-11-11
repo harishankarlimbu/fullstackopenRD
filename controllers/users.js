@@ -1,11 +1,17 @@
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { User } = require('../models')
+const { User, Blog } = require('../models')
 const { SECRET } = require('../util/config')
 
 router.get('/', async (req, res) => {
-  const users = await User.findAll()
+  const users = await User.findAll({
+    attributes: { exclude: ['passwordHash'] },
+    include: {
+      model: Blog,
+      attributes: ['id', 'title', 'author', 'url', 'likes']
+    }
+  })
   res.json(users)
 })
 
