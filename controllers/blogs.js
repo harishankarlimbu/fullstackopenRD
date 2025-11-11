@@ -30,11 +30,19 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   const blog = await Blog.findByPk(req.params.id)
-  if (blog) {
-    await blog.destroy()
+  
+  if (!blog) {
+    return res.status(404).json({ error: 'blog not found' })
   }
+  
+  // Check if the blog belongs to the logged-in user
+  if (blog.userId !== req.user.id) {
+    return res.status(403).json({ error: 'only the creator can delete this blog' })
+  }
+  
+  await blog.destroy()
   res.status(204).end()
 })
 
