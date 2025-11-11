@@ -2,7 +2,8 @@ const errorHandler = (error, req, res, next) => {
   console.error(error)
   // Handle validation errors (from Sequelize)
   if (error.name === 'SequelizeValidationError') {
-    return res.status(400).json({ error: error.message })
+    const errorMessages = error.errors.map(e => e.message)
+    return res.status(400).json({ error: errorMessages })
   }
 // Handle database errors
   if (error.name === 'SequelizeDatabaseError') {
