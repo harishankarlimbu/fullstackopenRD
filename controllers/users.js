@@ -56,5 +56,29 @@ router.post('/login', async (req, res) => {
   res.json({ token, username: user.username, name: user.name })
 })
 
+router.get('/:id', async (req, res) => {
+  const user = await User.findByPk(req.params.id, {
+    attributes: { exclude: ['passwordHash'] },
+    include: {
+      model: Blog,
+      as: 'readings',
+      attributes: ['id', 'url', 'title', 'author', 'likes', 'year'],
+      through: {
+        attributes: [] 
+      }
+    }
+  })
+
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' })
+  }
+
+  res.json({
+    name: user.name,
+    username: user.username,
+    readings: user.readings || []
+  })
+})
+
 module.exports = router
 

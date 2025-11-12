@@ -10,11 +10,13 @@ const { Blog, User } = require("./models");
 const blogsRouter = require("./controllers/blogs");
 const { authorsRouter } = require("./controllers/blogs");
 const usersRouter = require("./controllers/users");
+const readingListsRouter = require("./controllers/readingLists");
 
 app.use(express.json());
 app.use("/api/authors", authorsRouter);
 app.use("/api/blogs", blogsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/readinglists", readingListsRouter);
 
 app.use(errorHandler);
 
