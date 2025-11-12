@@ -8,10 +8,11 @@ const errorHandler = require("./middleware/errorHandler");
 const { Blog, User } = require("./models");
 
 const blogsRouter = require("./controllers/blogs");
+const { authorsRouter } = require("./controllers/blogs");
 const usersRouter = require("./controllers/users");
 
 app.use(express.json());
-
+app.use("/api/authors", authorsRouter);
 app.use("/api/blogs", blogsRouter);
 app.use("/api/users", usersRouter);
 
@@ -39,15 +40,6 @@ const start = async () => {
 
       // If column doesn't exist
       if (results.length === 0) {
-        await User.sequelize.query(`
-          ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)
-        `);
-        await User.sequelize.query(`
-          UPDATE users SET password_hash = '' WHERE password_hash IS NULL
-        `);
-        await User.sequelize.query(`
-          ALTER TABLE users ALTER COLUMN password_hash SET NOT NULL
-        `);
         await User.sync({ alter: true });
       } else {
         throw error;
