@@ -7,11 +7,7 @@ module.exports = {
     
     await queryInterface.addColumn('blogs', 'year', {
       type: Sequelize.INTEGER,
-      allowNull: true, // Allow null for existing records
-      validate: {
-        min: 1991,
-        max: currentYear
-      }
+      allowNull: true // Allow null for existing records
     });
 
     // Add check constraint at database level
