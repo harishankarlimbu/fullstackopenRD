@@ -18,36 +18,45 @@ app.use("/api/users", usersRouter);
 
 app.use(errorHandler);
 
+const { sequelize } = require("./util/db");
+const { Sequelize } = require("sequelize");
+const { Umzug, SequelizeStorage } = require("umzug");
+const path = require("path");
+
+const runMigrations = async () => {
+  const migrator = new Umzug({
+    migrations: {
+      glob: path.join(__dirname, "migrations", "*.js"),
+      resolve: ({ name, path: migrationPath, context }) => {
+        const migration = require(migrationPath);
+        return {
+          name,
+          up: async () => {
+            if (typeof migration.up === 'function') {
+              return migration.up(context, Sequelize);
+            }
+            throw new Error(`Migration ${name} does not export an 'up' function`);
+          },
+          down: async () => {
+            if (typeof migration.down === 'function') {
+              return migration.down(context, Sequelize);
+            }
+            throw new Error(`Migration ${name} does not export a 'down' function`);
+          },
+        };
+      },
+    },
+    storage: new SequelizeStorage({ sequelize, tableName: "migrations" }),
+    context: sequelize.getQueryInterface(),
+    logger: console,
+  });
+
+  await migrator.up();
+};
+
 const start = async () => {
   await connectToDatabase();
-  // alter: true will add missing columns to existing tables
-  await Blog.sync({ alter: true });
-  try {
-    await User.sync({ alter: true });
-  } catch (error) {
-    const errorMessage = error.original?.message || error.message || "";
-    if (
-      error.name === "SequelizeDatabaseError" &&
-      errorMessage.includes("contains null values") &&
-      (errorMessage.includes("password_hash") ||
-        error.original?.column === "password_hash")
-    ) {
-      const [results] = await User.sequelize.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'users' AND column_name = 'password_hash'
-      `);
-
-      // If column doesn't exist
-      if (results.length === 0) {
-        await User.sync({ alter: true });
-      } else {
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-  }
+  await runMigrations();
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
