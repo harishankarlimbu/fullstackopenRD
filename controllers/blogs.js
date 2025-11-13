@@ -36,7 +36,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // Authors router for /api/authors endpoint
 const authorsRouter = require("express").Router();
 
-app.get("/api/authors", async (req, res, next) => {
+authorsRouter.get("/", async (req, res, next) => {
   try {
     const authors = await Blog.findAll({
       attributes: [
@@ -45,7 +45,7 @@ app.get("/api/authors", async (req, res, next) => {
         [Sequelize.fn("SUM", Sequelize.col("likes")), "likes"],
       ],
       group: ["author"],
-      order: [[sequelize.fn("SUM", sequelize.col("likes")), "DESC"]],
+      order: [[Sequelize.fn("SUM", Sequelize.col("likes")), "DESC"]],
       raw: true,
     });
 

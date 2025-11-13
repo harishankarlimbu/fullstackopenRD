@@ -64,7 +64,7 @@ router.get('/:id', async (req, res) => {
       as: 'readings',
       attributes: ['id', 'url', 'title', 'author', 'likes', 'year'],
       through: {
-        attributes: [] 
+        attributes: ['id', 'read']
       }
     }
   })
@@ -73,10 +73,27 @@ router.get('/:id', async (req, res) => {
     return res.status(404).json({ error: 'User not found' })
   }
 
+  // Transform to match expected format
+  const readings = (user.readings || []).map(blog => {
+    const blogData = blog.toJSON()
+    return {
+      id: blogData.id,
+      url: blogData.url,
+      title: blogData.title,
+      author: blogData.author,
+      likes: blogData.likes,
+      year: blogData.year,
+      readinglists: blogData.readingList ? [{
+        id: blogData.readingList.id,
+        read: blogData.readingList.read
+      }] : []
+    }
+  })
+
   res.json({
     name: user.name,
     username: user.username,
-    readings: user.readings || []
+    readings: readings
   })
 })
 
