@@ -74,7 +74,7 @@ router.get('/:id', async (req, res) => {
   }
 
   // Transform to match expected format
-  const readings = (user.readings || []).map(blog => {
+  let readings = (user.readings || []).map(blog => {
     const blogData = blog.toJSON()
     return {
       id: blogData.id,
@@ -89,6 +89,14 @@ router.get('/:id', async (req, res) => {
       }] : []
     }
   })
+
+  // Filter by read status
+  if (req.query.read !== undefined) {
+    const readFilter = req.query.read === 'true'
+    readings = readings.filter(blog => {
+      return blog.readinglists.length > 0 && blog.readinglists[0].read === readFilter
+    })
+  }
 
   res.json({
     name: user.name,
