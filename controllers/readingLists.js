@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const { ReadingList, User, Blog } = require('../models')
+const authMiddleware = require('../middleware/auth')
 
 router.post('/', async (req, res) => {
   const { blogId, userId } = req.body
@@ -29,12 +30,29 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Blog already in reading list' })
   }
 
-  // Add to reading list (read defaults to false)
+  // Add to reading list
   const readingListItem = await ReadingList.create({
     userId,
     blogId,
     read: false
   })
+
+  res.json(readingListItem)
+})
+
+router.put('/:id', authMiddleware, async (req, res) => {
+  const { read } = req.body
+  const readingListItem = await ReadingList.findByPk(req.params.id)
+
+  if (!readingListItem) {
+    return res.status(404).json({ error: 'Reading list item not found' })
+  }
+  // Checking
+  if (readingListItem.userId !== req.user.id) {
+    return res.status(403).json({ error: 'You can only mark your own reading list items as read' })
+  }
+  readingListItem.read = read
+  await readingListItem.save()
 
   res.json(readingListItem)
 })
